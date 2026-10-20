@@ -1,0 +1,6 @@
+# GitHub dil istatistikleri: üçüncü taraf kütüphane ve test betikleri sayılmaz
+lib/** linguist-vendored
+tools/*.py linguist-detectable=false
+tools/**/*.py linguist-detectable=false
+tools/mercom_gui.py linguist-detectable=true
+tools/mercom_link.py linguist-detectable=true
