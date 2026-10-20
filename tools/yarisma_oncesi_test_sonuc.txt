@@ -1,0 +1,34 @@
+=== MERCOM-1 yarisma oncesi test (06:49) ===
+[ OK ] Baglanti + yazilim surumu                      surum 0.1.1, acik kalma 2298 s
+plx_en = 1
+plx_d = 4
+plx_ht = 0.166
+plx_ly = -0.13
+aim_db = 0.3
+kp_pan = 8
+kp_tilt = 8
+tilt_min = -90
+tilt_max = 90
+ce_min = 0
+ce_max = 4
+cl_pan = 1
+cl_tilt = 1
+cl_ce = 0
+i2c_sync = 1
+imu_poll_us = 1000
+yaw_anchor = 1
+imu_mount_p = 5.512
+lora_telem_hz = 1
+aim_kff = 0.7
+aim_kff_pan = 0
+[ OK ] Yarisma parametreleri (21 adet)                hepsi dogru
+[ OK ] IMU (20 s)                                     90 rapor/s, reset 0, bayat ornek 0
+[ OK ] Enkoderler (tani)                              pan AGC 79 hata 0 sicrama 0, tilt AGC 236 hata 0 sicrama 0, ce AGC 3 hata 0 sicrama 0
+[ OK ] Suruculer tek tek ac / kapat                   uc eksen de
+[ OK ] Lazer ac / kapat                               
+[HATA] Eksen hareketleri (+-5 pan/tilt, CE 0-3; CE 1 mikroadim 0,225) tilt hedef 7.25 sayac 2.88 | donuste enkoder farki pan -0.29 tilt +0.58
+[HATA] Kapali cevrim sahte duzeltme yok               {'pan': 0, 'tilt': 6}
+[HATA] Eksen kapsami (pan 360, tilt 2->85->geri)      pan 90: enkoder farki -90.29, pan 180: enkoder farki +179.71, pan 270: enkoder farki +89.70, tilt 85 olmadi
+   ... bno_hareket_testi.py 120 calisiyor
+[ OK ] Hareket halinde IMU (120 s salinim)            reset 0, I2C hatasi 0, 90 rapor/s, bayat %0.0
+   ... bozma_testi.py yenikilit calisiyor

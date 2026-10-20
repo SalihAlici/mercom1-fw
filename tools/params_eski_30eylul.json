@@ -1,0 +1,13 @@
+{
+ "tilt_min": -90.0,
+ "tilt_max": 90.0,
+ "ce_min": 0.0,
+ "ce_max": 4.0,
+ "vmax_ce": 20.0,
+ "plx_en": 1.0,
+ "plx_ht": 0.166,
+ "plx_lx": 0.1,
+ "plx_ly": -0.13,
+ "plx_lz": 0.05,
+ "plx_d": 4.0
+}

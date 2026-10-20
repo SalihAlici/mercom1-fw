@@ -1,0 +1,9 @@
+.pio/
+.vscode/
+*.csv
+__pycache__/
+
+# Grafikler yüklenmez; arayüz logosu kalır
+*.png
+!tools/mergen_logo.png
+!docs/*.png
