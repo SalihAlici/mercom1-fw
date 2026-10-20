@@ -1,130 +1,130 @@
-# MERCOM-1: hareket hâlinde uydu terminali (SoTM) prototipi
+# MERCOM-1: Satellite-on-the-Move (SoTM) Terminal Prototype
 
-MERCOM-1, hareketli bir platform üzerine yerleştirilen anteni sabit bir hedefe kilitli tutan üç eksenli bir yönlendirme düzeneğidir. Taban yalpalarken ya da dönerken anten başlığındaki IMU yönelimi ölçer. Gömülü yazılım bu ölçüme göre pan, tilt ve CE (çapraz elevasyon) motorlarını sürer ve antenin eksenindeki lazeri hedef noktada tutar. Düzenek bilgisayardaki arayüzden USB ya da LoRa kablosuz bağlantıyla kontrol edilir.
+MERCOM-1 is a three-axis pointing system that keeps an antenna locked onto a fixed target while mounted on a moving platform. As the base tilts or rotates, an IMU on the antenna head measures its orientation. The firmware drives the pan, tilt and CE (cross-elevation) motors accordingly and keeps a boresight laser on the target point. The system is controlled from a desktop application over USB or a LoRa wireless link.
 
-Bu depo kartın gömülü yazılımını, masaüstü kontrol arayüzünü ve geliştirme sırasında yazılan test araçlarını içerir.
+This repository contains the board firmware, the desktop control application and the test tools written during development.
 
-![Kontrol ve veri sekmesi](docs/arayuz_kontrol.png)
-*Masaüstü arayüz, kontrol ve veri sekmesi (görüntüdeki değerler örnek veridir).*
+![Control and data tab](docs/arayuz_kontrol.png)
+*Desktop application, control and data tab (values shown are sample data; the user interface is in Turkish).*
 
-## Özellikler
+## Features
 
-**Hareket ve takip**
-- Üç eksen: **pan** (0–360°, sınırsız, hedefe kısa yoldan döner), **tilt** (−90…90°) ve **CE** (0–4°, küçük yanal düzeltmeler).
-- **Otomatik takip:** hedef yönü bir kez kilitlenir. Taban hareket ettikçe IMU'dan gelen sapma PI denetleyiciyle düzeltilir.
-- **Jiroskop ileri beslemesi:** tabanın dönüş hızı hata oluşmadan önce karşılanır. Pan ve tilt için katsayılar ayrı ayarlanır.
-- **Paralaks düzeltmesi:** lazerin dönme ekseninden uzaklığı ve hedef mesafesi hesaba katılır; yön yerine hedef noktası tutulur.
-- Ölü bant ve integral sınırı. Bayat IMU verisi gelirse eksenler bulundukları konumda tutulur.
-- **Manuel mod:** açıya git, ±0,1/1/10° adım, basılı tutunca dönme, iki açı arasında salınım.
+**Motion and tracking**
+- Three axes: **pan** (0–360°, continuous, always takes the shortest path), **tilt** (−90…90°) and **CE** (0–4°, small lateral corrections).
+- **Automatic tracking:** the target direction is locked once; as the base moves, the deviation measured by the IMU is corrected by a PI controller.
+- **Gyro feed-forward:** the base angular rate is compensated before an error builds up, with separate gains for pan and tilt.
+- **Parallax correction:** the laser offset from the rotation axes and the target distance are taken into account, so the target point is held rather than just the direction.
+- Dead band and integral limit; axes hold position if IMU data becomes stale.
+- **Manual mode:** go to angle, ±0.1/1/10° steps, press-and-hold jogging, oscillation between two angles.
 
-**Güvenilirlik**
-- **Kapalı çevrim:** motor milindeki manyetik enkoder adım kaçırmayı yakalar ve konumu düzeltir.
-- **CE konum tutma:** CE ekseni otomatik modda enkoderle kilit açısında tutulur.
-- **IMU kurtarma:** IMU akışı 300 ms kesilirse önce I2C hattı, yetmezse sensör yeniden başlatılır.
-- **Bekçi köpeği (watchdog):** ana döngü takılırsa kart kendini yeniden başlatır ve açılışta sebebini bildirir.
-- **Kalıcı parametreler:** 78 parametre flash belleğe kaydedilir, güç gidip gelince son hâliyle açılır.
-- **DUR ve ACİL DUR:** DUR rampalı durdurur; ACİL DUR sürücüleri anında kapatır.
+**Reliability**
+- **Closed loop:** magnetic encoders on the motor shafts detect missed steps and correct the position.
+- **CE position hold:** in automatic mode the CE axis is held at the lock angle using its encoder.
+- **IMU recovery:** if the IMU stream stops for 300 ms, the I2C bus is reset first and then the sensor if needed.
+- **Watchdog:** the board restarts itself if the main loop hangs and reports the reset cause at boot.
+- **Persistent parameters:** 78 parameters are stored in flash and restored after a power cycle.
+- **STOP and EMERGENCY STOP:** STOP ramps down; EMERGENCY STOP disables the drivers immediately.
 
-**Haberleşme**
-- USB seri ve LoRa (E22-900T22D, 9,6 kbps, LBT) üzerinden aynı protokol.
-- Çerçeve yapısı ve CRC16 denetimi; komutlara onay (ACK) mesajı.
-- 84 baytlık telemetri paketi.
+**Communication**
+- The same protocol over USB serial and LoRa (E22-900T22D, 9.6 kbps, listen-before-talk).
+- Framed packets with CRC16; commands are acknowledged (ACK).
+- 84-byte telemetry packet.
 
-## Donanım
+## Hardware
 
-| Bileşen | Model |
+| Component | Model |
 |---|---|
-| Denetleyici | Teensy 4.1 (ana kart); ilk sürüm STM32 Nucleo-H753ZI |
-| Motorlar | 3 × NEMA17 adım motoru; pan 1:10, tilt 1:5 redüktörlü, CE doğrudan |
-| Sürücüler | 3 × TMC2209 (STEP/DIR/EN, 8 mikroadım) |
-| Enkoderler | 3 × AS5048A manyetik enkoder (SPI) |
+| Controller | Teensy 4.1 (main board); first version on STM32 Nucleo-H753ZI |
+| Motors | 3 × NEMA17 stepper motors; pan 1:10 and tilt 1:5 geared, CE direct drive |
+| Drivers | 3 × TMC2209 (STEP/DIR/EN, 8 microsteps) |
+| Encoders | 3 × AS5048A magnetic encoders (SPI) |
 | IMU | BNO085 (I2C, Game Rotation Vector, 100 Hz) |
-| Kablosuz | 2 × E22-900T22D LoRa (terminal + yer istasyonu köprüsü) |
-| Lazer | 5 mW, MOSFET ile anahtarlanır |
+| Wireless | 2 × E22-900T22D LoRa (terminal + ground station bridge) |
+| Laser | 5 mW, switched by a MOSFET |
 
-Pin planı ve bağlantı kuralları: [MERCOM1_OZELLIKLER.md](MERCOM1_OZELLIKLER.md).
+Pin map and wiring rules: [MERCOM1_OZELLIKLER.md](MERCOM1_OZELLIKLER.md) (in Turkish).
 
-## Yazılım mimarisi
+## Software architecture
 
-| Katman | Dosyalar | Görev |
+| Layer | Files | Role |
 |---|---|---|
-| Donanım | `src/hw.cpp` (Nucleo), `src/hw_teensy.cpp` | Zamanlayıcılar, pinler, yazılım SPI, bekçi köpeği, kalıcı bellek |
-| Sürücüler | `src/drv/` | `stepgen` 20 kHz adım üreteci (DDA), `as5048a`, `bno085`, `tmc2209` |
-| Kontrol | `src/ctrl/axis.c`, `src/ctrl/pointing.c` | Trapez hız profili, sınırlar, kapalı çevrim; takip, ileri besleme, paralaks |
-| Uygulama | `src/app/` | Protokol, çerçeve ayrıştırıcı, parametre tablosu, durum makinesi, telemetri |
-| Giriş | `src/main.cpp` | Kurulum, ana döngü, komut işleme |
+| Hardware | `src/hw.cpp` (Nucleo), `src/hw_teensy.cpp` | Timers, pins, software SPI, watchdog, persistent storage |
+| Drivers | `src/drv/` | `stepgen` 20 kHz step generator (DDA), `as5048a`, `bno085`, `tmc2209` |
+| Control | `src/ctrl/axis.c`, `src/ctrl/pointing.c` | Trapezoidal velocity profile, limits, closed loop; tracking, feed-forward, parallax |
+| Application | `src/app/` | Protocol, frame parser, parameter table, state machine, telemetry |
+| Entry | `src/main.cpp` | Setup, main loop, command handling |
 
-Adım üretimi 20 kHz'lik, kontrol döngüsü 1 kHz'lik zamanlayıcı kesmesinde çalışır. Algoritma kodu (`app`, `ctrl`, `drv/stepgen`) düz C'dir ve karta bağımlı değildir. Kart değişince yalnız `hw` katmanı yeniden yazılır.
+Step generation runs in a 20 kHz timer interrupt and the control loop in a 1 kHz timer interrupt. The algorithm code (`app`, `ctrl`, `drv/stepgen`) is plain C and board-independent; only the `hw` layer is rewritten when the board changes.
 
-## Kurulum ve çalıştırma
+## Build and run
 
-1. VS Code'a PlatformIO eklentisini kurun ve bu klasörü açın.
-2. Derleyip yükleyin:
+1. Install the PlatformIO extension in VS Code and open this folder.
+2. Build and upload:
    ```
    pio run -e teensy41 -t upload        # Teensy 4.1
    pio run -e nucleo_h753zi -t upload   # Nucleo-H753ZI
    ```
-3. Arayüz için Python 3 ve `pip install pyserial` gerekir:
+3. The desktop application needs Python 3 and `pip install pyserial`:
    ```
    python tools/mercom_gui.py
    ```
-   Seri portu listeden seçip "Bağlan"a basın. LoRa ile bağlanmak için yer istasyonu köprüsünün (`tools/lora_koprusu/`) portu seçilir.
+   Select the serial port and press "Bağlan" (Connect). To connect over LoRa, select the port of the ground station bridge (`tools/lora_koprusu/`).
 
-## Arayüz
+## Desktop application
 
-**Kontrol ve veri:**
-- Nişan hatası: Ø10 ve Ø20 hedef çemberlerine göre renkli gösterilir.
-- Mod düğmeleri (manuel, hedefe kilitle, otomatik takip).
-- Durum ışıkları, IMU açıları, enkoder tablosu.
-- Her eksen için hareket kartı.
-- Kart mesajları ve CSV veri kaydı.
+**Control and data tab:**
+- Pointing error, color-coded against Ø10 and Ø20 target circles.
+- Mode buttons (manual, lock on target, automatic tracking).
+- Status indicators, IMU angles, encoder table.
+- A motion panel for each axis.
+- Board messages and CSV data logging.
 
-**Ayarlar:** eksen ve takip parametreleri karttan okunur, karta yazılır, bilgisayara kaydedilir (`tools/params.json`).
+**Settings tab:** axis and tracking parameters can be read from the board, written to it and saved on the computer (`tools/params.json`).
 
-![Ayarlar sekmesi](docs/arayuz_ayarlar.png)
-*Ayarlar sekmesi.*
+![Settings tab](docs/arayuz_ayarlar.png)
+*Settings tab.*
 
-## Protokol
+## Protocol
 
-Çerçeve: `A5 | LEN | ID | PAYLOAD | CRC16 lo | CRC16 hi`.
-- CRC16-CCITT, LEN'den PAYLOAD sonuna kadar hesaplanır.
-- Sayılar little-endian.
+Frame: `A5 | LEN | ID | PAYLOAD | CRC16 lo | CRC16 hi`.
+- CRC16-CCITT, computed from LEN to the end of PAYLOAD.
+- Numbers are little-endian.
 
-| ID | Yön | Yük | Anlam |
+| ID | Direction | Payload | Meaning |
 |---|---|---|---|
 | 0x01 | PC→MCU | — | ping |
 | 0x02 | PC→MCU | u8 mode | 1 MANUAL, 2 AUTO |
-| 0x03 | PC→MCU | u8 axis, f32 dps | hız modunda dönme, 0 durdurur |
-| 0x04 | PC→MCU | u8 axis, f32 deg | açıya git |
-| 0x05 / 0x06 | PC→MCU | — | kilitle / bırak |
-| 0x07 | PC→MCU | u8 | lazer |
-| 0x08 / 0x09 | PC→MCU | u16 id (+ f32) | parametre oku / yaz |
-| 0x0A | PC→MCU | — | parametreleri kalıcı kaydet |
-| 0x0B | PC→MCU | u8 | motor sürücüleri EN |
-| 0x0C | PC→MCU | u16 Hz | telemetri hızı |
-| 0x0D | PC→MCU | — | tüm eksenleri durdur |
-| 0x0E | PC→MCU | — | arızayı temizle |
+| 0x03 | PC→MCU | u8 axis, f32 dps | jog at a rate, 0 stops |
+| 0x04 | PC→MCU | u8 axis, f32 deg | go to angle |
+| 0x05 / 0x06 | PC→MCU | — | lock / release |
+| 0x07 | PC→MCU | u8 | laser |
+| 0x08 / 0x09 | PC→MCU | u16 id (+ f32) | read / write parameter |
+| 0x0A | PC→MCU | — | save parameters to flash |
+| 0x0B | PC→MCU | u8 | motor driver enable |
+| 0x0C | PC→MCU | u16 Hz | telemetry rate |
+| 0x0D | PC→MCU | — | stop all axes |
+| 0x0E | PC→MCU | — | clear fault |
 | 0x81 | MCU→PC | u32 ms, u32 ver | pong |
-| 0x82 | MCU→PC | telem_t 84 B | telemetri |
-| 0x83 | MCU→PC | u16 id, f32, u8 ok | parametre değeri |
-| 0x84 | MCU→PC | metin | log satırı |
-| 0x85 | MCU→PC | u8 id, u8 durum | onay |
+| 0x82 | MCU→PC | telem_t 84 B | telemetry |
+| 0x83 | MCU→PC | u16 id, f32, u8 ok | parameter value |
+| 0x84 | MCU→PC | text | log line |
+| 0x85 | MCU→PC | u8 id, u8 status | acknowledge |
 
-Tam komut listesi: [MERCOM1_KOD_VE_PARAMETRELER.md](MERCOM1_KOD_VE_PARAMETRELER.md).
+Full command list: [MERCOM1_KOD_VE_PARAMETRELER.md](MERCOM1_KOD_VE_PARAMETRELER.md) (in Turkish).
 
-## Klasörler
+## Repository layout
 
 ```
-src/                 gömülü yazılım (hw, drv, ctrl, app)
-lib/Adafruit_BNO08x  BNO085 kütüphanesi (projeye göre yamalı, bkz. MERCOM_YAMA.md)
-tools/               arayüz, LoRa köprüsü ve ayar betikleri, donanım test programları ve test betikleri
-docs/                README görselleri
+src/                 firmware (hw, drv, ctrl, app)
+lib/Adafruit_BNO08x  BNO085 library (patched for this project, see MERCOM_YAMA.md)
+tools/               desktop application, LoRa bridge and configuration scripts, hardware test programs and test scripts
+docs/                README images
 ```
 
-## Belgeler
+## Documentation (in Turkish)
 
-- [MERCOM1_SISTEM_TAM_ACIKLAMA.md](MERCOM1_SISTEM_TAM_ACIKLAMA.md): sistemin baştan sona anlatımı
-- [MERCOM1_YAZILIM_ACIKLAMA.md](MERCOM1_YAZILIM_ACIKLAMA.md): yazılımın çalışma mantığı
-- [MERCOM1_EKSENLER_VE_KOD.md](MERCOM1_EKSENLER_VE_KOD.md): eksenler ve kod
-- [MERCOM1_KOD_VE_PARAMETRELER.md](MERCOM1_KOD_VE_PARAMETRELER.md): parametreler, protokol, kullanım
-- [MERCOM1_OZELLIKLER.md](MERCOM1_OZELLIKLER.md): donanım, pin planı, kararlar ve test geçmişi
+- [MERCOM1_SISTEM_TAM_ACIKLAMA.md](MERCOM1_SISTEM_TAM_ACIKLAMA.md): full system description
+- [MERCOM1_YAZILIM_ACIKLAMA.md](MERCOM1_YAZILIM_ACIKLAMA.md): how the software works
+- [MERCOM1_EKSENLER_VE_KOD.md](MERCOM1_EKSENLER_VE_KOD.md): axes and code
+- [MERCOM1_KOD_VE_PARAMETRELER.md](MERCOM1_KOD_VE_PARAMETRELER.md): parameters, protocol, usage
+- [MERCOM1_OZELLIKLER.md](MERCOM1_OZELLIKLER.md): hardware, pin map, design decisions and test history
